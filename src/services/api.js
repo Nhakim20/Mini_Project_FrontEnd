@@ -29,10 +29,48 @@ export const register = (name, address, phone_number, password) => {
      password     
    }
 
-   const token = Cookies.get('token')
-   const configHeaders = {
-      Authorization: "Bearer" + token,
-   }
-   return axios.post(`${BASE_URL}/auth/register`, bodyJSON, configHeaders);
+   return axios.post(`${BASE_URL}/auth/register`, bodyJSON);
 };
 
+export const deleteProduct = (id) => {
+   const token = Cookies.get("token")
+   const headerConfig = {
+      headers: {
+         Authorization: "Bearer " + token, 
+      },
+   };
+   return axios.delete(`${BASE_URL}/products/${id}`, headerConfig)
+}
+
+export const addProduct = (name, quantity, price, image) => {
+   const bodyJSON = {
+      name,
+      quantity,
+      price,
+      image,
+   };
+   const token = Cookies.get("token")
+   const headerConfig = {
+      headers: {
+         Authorization: "Bearer " + token, 
+      },
+   };
+   return axios.post(`${BASE_URL}/products`, bodyJSON, headerConfig)
+}
+
+   export const updateProduct = (id,name, quantity, price, image) => {
+      const bodyJSON = {
+         name,
+         quantity,
+         price,
+         image,
+      };
+      const token = Cookies.get("token")
+      const headerConfig = {
+         headers: {
+            Authorization: "Bearer " + token, 
+         },
+      };
+      return axios.put(`${BASE_URL}/products/${id}`, bodyJSON, headerConfig)
+
+}

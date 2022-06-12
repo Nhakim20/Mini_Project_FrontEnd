@@ -1,10 +1,115 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import ProtectedComponent from '../../layout/protected-component'
+import {Button, Table} from 'react-bootstrap'
+import { getAllProducts, deleteProduct} from '../../services/api'
+import ReactLoading from 'react-loading';
+import swal from 'sweetalert';
+import AddProductModal from '../../components/modal/add-product-modal';
+import EditProductModal from '../../components/modal/edit-product-modal';
 
 const DashboardAdmin = () => {
+  const [dataProducts, setDataProducts] = useState([]);
+  const [dataEditProduct, setDataEditProduct] = useState({})
+  const [isLoading, setIsLoading] = useState(false)
+  const [refresh, setRefresh] = useState(false)
+  const [show, setShow] = useState(false);
+  const [showEdit, setShowEdit] = useState(false)
+
+  const fetchAllProducts = async () => {
+    await setIsLoading(true);
+    await getAllProducts()
+    .then((response) => setDataProducts(response.data))
+    .catch((error) => console.log(error));
+    await setIsLoading(false);
+  };
+
+  const deleteProductById = async (id) => {
+    
+     swal({
+      title: "Are you sure?",
+      text: "Once deleted, you will not be able to recover this data file!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    })
+    .then(async (willDelete) => {
+      if (willDelete) {
+      await deleteProduct(id)
+      .then((response) => console.log(response.data))
+      .catch((error) => console.log(error));
+      setRefresh(!refresh)
+      }
+    });
+  
+  }
+
+  useEffect(() => {
+    fetchAllProducts();
+  }, [refresh]);
+
+  const handleClose = () => setShow(false);
+  const handleShow = () => setShow(true);
+
+  const handleCloseEdit = () => setShowEdit(false);
+  const handleShowEdit = () => setShowEdit(true);
+
   return (
     <ProtectedComponent>
-    <div>DashboardAdmin</div>
+    <div>
+      <AddProductModal show={show} 
+      handleClose ={handleClose} 
+      setRefresh={setRefresh} 
+      refresh={refresh}/>
+      <EditProductModal showEdit={showEdit} 
+      handleCloseEdit ={handleCloseEdit} 
+      setRefresh={setRefresh} 
+      refresh={refresh}
+      dataEditProduct={dataEditProduct}/>
+      <h1>DashboardAdmin</h1>
+      <div className="d-flex justify-content-end">
+      <Button variant="primary" className="my-3" onClick={handleShow}> Add Product</Button>
+      </div>
+      {isLoading ? ( <ReactLoading type="spinningBubbles" color="#0D6EFD" className='m-auto mt-5'/> ): 
+    (
+      <Table striped bordered hover>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Quantity</th>
+      <th>Price</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {dataProducts.map((product) => (
+     <tr>
+       <td>{product.name}</td>
+       <td>{product.quantity}</td>
+       <td>{product.price}</td>
+       <td>
+          <Button variant="warning"
+          className="mx-1" 
+          onClick={() => {
+            handleShowEdit()
+            setDataEditProduct(product)
+          }}
+          >Edit
+          </Button>
+          <Button variant="danger" 
+          className="mx-1" 
+          onClick={() =>
+            deleteProductById(product.id)
+          }
+          >
+            Delete
+            </Button>
+       </td>
+     </tr>
+    ))}
+  </tbody>
+</Table>
+    )}
+    </div>
     </ProtectedComponent>
   )
 }
